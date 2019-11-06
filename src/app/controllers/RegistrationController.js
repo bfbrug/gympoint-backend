@@ -62,38 +62,70 @@ class RegistrationController {
 
   async update(req, res) {
     const schema = Yup.object().shape({
-      title: Yup.string(),
-      duration: Yup.number(),
-      price: Yup.number(),
+      student_id: Yup.number().required(),
+      plan_id: Yup.number(),
+      start_date: Yup.date(),
     });
 
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails ' });
     }
 
-    const plan = await Plan.findByPk(req.params.id);
-
-    // console.log(studentExists);
-
-    const { id, title, duration, price } = await plan.update({
-      ...req.body,
-      ...{ user_id: req.userId },
+    const registration = await Registration.findOne({
+      where: { id: req.params.id },
+      include: [
+        {
+          model: Plan,
+          as: 'plan',
+          attributes: ['id', 'duration', 'price'],
+        },
+      ],
     });
+
+    const { plan_id, start_date } = req.body;
+
+    if (plan_id) {
+      const { duration, price } = await Plan.findByPk(plan_id);
+      req.body.price = price * duration;
+    }
+
+    if (start_date) {
+      if (plan_id) {
+        const { duration } = await Plan.findByPk(plan_id);
+        req.body.end_date = addMonths(parseISO(start_date), duration);
+      } else {
+        req.body.end_date = addMonths(
+          parseISO(start_date),
+          registration.plan.duration
+        );
+      }
+    }
+
+    const {
+      id,
+      student_id,
+      end_date,
+      duration,
+      price,
+    } = await registration.update(req.body);
 
     return res.json({
       id,
-      title,
+      student_id,
+      plan_id,
+      start_date,
+      end_date,
       duration,
       price,
     });
   }
 
   async delete(req, res) {
-    const plan = await Plan.findByPk(req.params.id);
+    const registration = await Registration.findByPk(req.params.id);
 
-    await plan.destroy();
+    await registration.destroy();
 
-    return res.json(plan);
+    return res.json(registration);
   }
 }
 
