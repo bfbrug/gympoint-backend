@@ -33,12 +33,8 @@ class StudentController {
     }
 
     const { id, name, email, idade, peso, altura } = await Student.create({
-      name: req.body.name,
-      email: req.body.email,
-      idade: req.body.idade,
-      peso: req.body.peso,
-      altura: req.body.altura,
-      user_id: req.userId,
+      ...req.body,
+      ...{ user_id: req.userId },
     });
 
     return res.json({

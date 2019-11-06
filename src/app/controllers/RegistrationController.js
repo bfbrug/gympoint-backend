@@ -3,27 +3,32 @@ import { parseISO, addMonths } from 'date-fns';
 
 import Registration from '../models/Registration';
 import Plan from '../models/Plan';
-import User from '../models/User';
+import Student from '../models/Student';
 
 class RegistrationController {
   async index(req, res) {
     const { page = 1 } = req.query;
 
-    const plans = await Plan.findAll({
-      where: { user_id: req.userId },
-      order: ['duration'],
-      attributes: ['id', 'title', 'duration', 'price'],
+    const registrations = await Registration.findAll({
+      order: ['createdAt'],
+      attributes: ['id', 'start_date', 'end_date', 'price'],
       limit: 20,
       offset: (page - 1) * 20,
       include: [
         {
-          model: User,
-          as: 'user',
-          attributes: ['id', 'name'],
+          model: Student,
+          as: 'student',
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          model: Plan,
+          as: 'plan',
+          attributes: ['id', 'title', 'duration', 'price'],
         },
       ],
     });
-    return res.json(plans);
+
+    return res.json(registrations);
   }
 
   async store(req, res) {
