@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 import Checkin from '../models/Checkin';
 import Student from '../models/Student';
 
-class RegistrationController {
+class CheckinController {
   async index(req, res) {
     const { page = 1 } = req.query;
 
@@ -49,4 +49,4 @@ class RegistrationController {
   }
 }
 
-export default new RegistrationController();
+export default new CheckinController();
